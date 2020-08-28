@@ -1199,7 +1199,7 @@ install (FILES "${CMAKE_BINARY_DIR}/OpenCASCADEConfigVersion.cmake" DESTINATION 
 
 # Install the export set for use with the install-tree for each configuration
 foreach (OCCT_MODULE ${OCCT_MODULES_ENABLED})
-  install(EXPORT OpenCASCADE${OCCT_MODULE}Targets DESTINATION "${INSTALL_DIR_CMAKE}")
+  install(EXPORT OpenCASCADE${OCCT_MODULE}Targets DESTINATION "${INSTALL_DIR_CMAKE}" NAMESPACE occt::)
 endforeach()
 
 # Update generated OpenCASCADETargets-*.cmake files 
