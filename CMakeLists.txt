@@ -6,6 +6,15 @@ set (CMAKE_SUPPRESS_REGENERATION TRUE)
 
 set (CMAKE_CONFIGURATION_TYPES Release Debug RelWithDebInfo CACHE INTERNAL "" FORCE)
 
+# Get Freetype from hunter:
+include("adm/cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.260.tar.gz"
+    SHA1 "13775235910a3fa85644568d1c5be8271de72e1c"
+    FILEPATH
+    "${CMAKE_CURRENT_LIST_DIR}/adm/cmake/Hunter/config.cmake"
+)
+
 # macro: include patched file if it exists
 macro (OCCT_INCLUDE_CMAKE_FILE BEING_INCLUDED_FILE)
   if (BUILD_PATCH AND EXISTS "${BUILD_PATCH}/${BEING_INCLUDED_FILE}.cmake")
@@ -20,7 +29,11 @@ OCCT_INCLUDE_CMAKE_FILE ("adm/cmake/vardescr")
 
 # set type of OCCT libraries
 if (NOT BUILD_LIBRARY_TYPE)
-  set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
+  if(BUILD_SHARED_LIBS)
+    set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
+  else()
+    set (BUILD_LIBRARY_TYPE "Static" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
+  endif()
   SET_PROPERTY(CACHE BUILD_LIBRARY_TYPE PROPERTY STRINGS Shared Static)
 endif()
 
@@ -42,6 +55,9 @@ if (WIN32)
   add_definitions(-DUNICODE)
   add_definitions(-D_UNICODE)
 endif()
+
+# Hunter dependencies
+hunter_add_package(freetype)
 
 # include occt macros
 OCCT_INCLUDE_CMAKE_FILE ("adm/cmake/occt_macros")
@@ -413,6 +429,13 @@ if (NOT DEFINED BUILD_DOC_Overview)
 
   set (BUILD_DOC_Overview ${CAN_DOXYGEN_BE_USED} CACHE BOOL "${BUILD_DOC_Overview_DESCR}")
 endif()
+
+# Don't build Module Draw with Hunter because it has many dependencies that we cannot resolve 
+# and because draw is an executable that is anyway not directly used by a library depending on occt
+set(BUILD_MODULE_Draw OFF CACHE BOOL "${BUILD_MODULE_Draw_DESCR}" FORCE)
+
+# Don't build doxygen documentation for hunter
+set(BUILD_DOC_Overview OFF CACHE BOOL "${BUILD_DOC_Overview_DESCR}")
 
 if (NOT USE_D3D)
   list (REMOVE_ITEM Visualization_TOOLKITS TKD3DHost)
